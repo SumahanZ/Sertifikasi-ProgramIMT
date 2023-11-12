@@ -6,6 +6,13 @@
     <div class="container mt-5">
         <h1>Vehicles List</h1>
 
+        @if(Session::has("status"))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ Session::get("message") }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
         <div class="card mt-4">
             <div class="card-body">
                 <div class="mb-3">
@@ -66,7 +73,7 @@
 
                         @if (!empty($motorBikeList))
                             @foreach ($motorBikeList as $bike)
-                                @if($truck->vehicle)
+                                @if($bike->vehicle)
                                     <tr>
                                         <td class="align-middle">Motor Bike</td>
                                         <td class="align-middle">{{ $bike->vehicle->model }}</td>

@@ -6,6 +6,13 @@
     <div class="container mt-5">
         <h1>Order List</h1>
 
+        @if(Session::has("status"))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                {{ Session::get("message") }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        @endif
+
         <div class="card mt-4">
             <div class="card-body">
                 <div class="mb-3">
@@ -71,9 +78,8 @@
     </div>
 
     <style>
-        /* Define the width for the custom table */
         .custom-table-width {
-            width: 100%; /* You can adjust the width percentage as needed */
+            width: 100%;
         }
     </style>
 @endsection

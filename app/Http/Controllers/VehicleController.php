@@ -9,6 +9,7 @@ use App\Models\Vehicle;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Validator;
 
 class VehicleController extends Controller
 {
@@ -48,6 +49,28 @@ class VehicleController extends Controller
 
     public function update(Request $request, $id)
     {
+        $validator = Validator::make($request->all(), [
+            'model' => 'required|string|max:255',
+            'tahun' => 'required|string|max:4',
+            'jumlah_penumpang' => 'required|numeric',
+            'manufaktur' => 'required|string|max:255',
+            'harga' => 'required|numeric',
+            'photo' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'type' => 'required|in:car,truck,motorbike',
+            'tipe_bahan_bakar' => ($request->type == 'car') ? 'required|string|max:255' : '',
+            'luas_bagasi' => ($request->type == 'car') ? 'required|string|max:255' : '',
+            'jumlah_roda' => ($request->type == 'truck') ? 'required|numeric' : '',
+            'area_kargo' => ($request->type == 'truck') ? 'required|string|max:255' : '',
+            'ukuran_bagasi' => ($request->type == 'motorbike') ? 'required|string|max:255' : '',
+            'kapasitas_bensin' => ($request->type == 'motorbike') ? 'required|numeric' : '',
+        ]);
+    
+        if ($validator->fails()) {
+            return redirect("/vehicle-edit/$id")
+                ->withErrors($validator)
+                ->withInput();
+        }
+
         $vehicle = Vehicle::findOrFail($id);
         $newName = $vehicle->image;
     
@@ -138,6 +161,29 @@ class VehicleController extends Controller
 
     public function store(Request $request)
     {
+
+        $validator = Validator::make($request->all(), [
+            'model' => 'required|string|max:255',
+            'tahun' => 'required|string|max:4',
+            'jumlah_penumpang' => 'required|numeric',
+            'manufaktur' => 'required|string|max:255',
+            'harga' => 'required|numeric',
+            'photo' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'type' => 'required|in:car,truck,motorbike',
+            'tipe_bahan_bakar' => ($request->type == 'car') ? 'required|string|max:255' : '',
+            'luas_bagasi' => ($request->type == 'car') ? 'required|string|max:255' : '',
+            'jumlah_roda' => ($request->type == 'truck') ? 'required|numeric' : '',
+            'area_kargo' => ($request->type == 'truck') ? 'required|string|max:255' : '',
+            'ukuran_bagasi' => ($request->type == 'motorbike') ? 'required|string|max:255' : '',
+            'kapasitas_bensin' => ($request->type == 'motorbike') ? 'required|numeric' : '',
+        ]);
+    
+        if ($validator->fails()) {
+            return redirect('/vehicle-add')
+                ->withErrors($validator)
+                ->withInput();
+        }
+
         $newName = "";
 
         if ($request->file("photo")) {
@@ -211,7 +257,7 @@ class VehicleController extends Controller
 
             if ($truck) {
                 Session::flash("status", "success");
-                Session::flash("message", "Edit vehicle success!");
+                Session::flash("message", "Added vehicle success!");
             }
         } else {
             $bike = new MotorBike;

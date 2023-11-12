@@ -38,14 +38,12 @@ class CustomerController extends Controller
             'id_card' => 'required|numeric',
         ]);
 
-        // If validation fails, redirect back with the validation errors
         if ($validator->fails()) {
             return redirect('/customer-add')
                 ->withErrors($validator)
                 ->withInput();
         }
 
-        // Validation passed, create the customer record
         $customer = $this->createRecordCustomerDatabase($request);
 
         if ($customer) {

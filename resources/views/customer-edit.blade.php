@@ -1,13 +1,13 @@
 @extends("layouts.mainlayout")
 
-@section("title", "Customers")
+@section("title", "Edit Customer")
 
 @section("content")
 <div class="container mt-4">
     <div class="card">
         <div class="card-body">
             <h2 class="card-title">Edit Customer</h2>
-            
+
             @if ($errors->any())
                     <div class="alert alert-danger">
                         <ul>

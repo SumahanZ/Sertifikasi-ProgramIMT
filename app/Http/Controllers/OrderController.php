@@ -2,12 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
-use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Vehicle;
+use App\Models\Customer;
 use Illuminate\Http\Request;
+use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Validator;
 
 class OrderController extends Controller
 {
@@ -30,13 +31,26 @@ class OrderController extends Controller
     }
 
     public function create()
-    {
-        $vehicles = Vehicle::get();
+    {        $vehicles = Vehicle::get();
         return view("order-add", ["vehicleList" => $vehicles]);
     }
 
     public function store(Request $request)
     {
+
+        $validator = Validator::make($request->all(), [
+            'nama' => 'required|string|max:255',
+            'alamat' => 'required|string',
+            'no_telp' => 'required|numeric',
+            'id_card' => 'required|string|max:255',
+            'jumlah_kendaraan' => 'required|integer|min:1|max:5',
+        ]);
+    
+        if ($validator->fails()) {
+            return redirect('/order-add')
+                ->withErrors($validator)
+                ->withInput();
+        }
 
         $customer = Customer::create([
             "nama" => $request->nama,
@@ -76,6 +90,21 @@ class OrderController extends Controller
 
     public function update(Request $request, $id)
     {
+
+        $validator = Validator::make($request->all(), [
+            'nama' => 'required|string|max:255',
+            'alamat' => 'required|string',
+            'no_telp' => 'required|numeric',
+            'id_card' => 'required|string|max:255',
+            'jumlah_kendaraan' => 'required|integer|min:1|max:5',
+        ]);
+    
+        if ($validator->fails()) {
+            return redirect("order-edit/$id")
+                ->withErrors($validator)
+                ->withInput();
+        }
+
         $customerId = Order::findOrFail($id)->customer->id;
 
         Customer::findOrFail($customerId)->update([

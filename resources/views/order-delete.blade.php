@@ -1,6 +1,6 @@
 @extends("layouts.mainlayout")
 
-@section("title", "Order")
+@section("title", "Delete Order")
 
 @section("content")
 <div class="container mt-5">

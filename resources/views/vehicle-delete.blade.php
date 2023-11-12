@@ -1,6 +1,6 @@
 @extends("layouts.mainlayout")
 
-@section("title", "vehicle")
+@section("title", "Delete Vehicle")
 
 @section("content")
 <div class="container mt-5">
