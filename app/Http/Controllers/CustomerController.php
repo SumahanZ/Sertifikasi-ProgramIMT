@@ -6,6 +6,7 @@ use App\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Validator;
 
 class CustomerController extends Controller
 {
@@ -30,6 +31,21 @@ class CustomerController extends Controller
 
     public function store(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'nama' => 'required|string',
+            'alamat' => 'required|string|min:10',
+            'no_telp' => 'required|numeric|min:9',
+            'id_card' => 'required|numeric',
+        ]);
+
+        // If validation fails, redirect back with the validation errors
+        if ($validator->fails()) {
+            return redirect('/customer-add')
+                ->withErrors($validator)
+                ->withInput();
+        }
+
+        // Validation passed, create the customer record
         $customer = $this->createRecordCustomerDatabase($request);
 
         if ($customer) {
@@ -48,6 +64,20 @@ class CustomerController extends Controller
 
     public function update(Request $request, $id)
     {
+
+        $validator = Validator::make($request->all(), [
+            'nama' => 'required|string',
+            'alamat' => 'required|string|min:10',
+            'no_telp' => 'required|numeric|min:9',
+            'id_card' => 'required|numeric',
+        ]);
+
+        if ($validator->fails()) {
+            return redirect("/customer-edit/$id")
+                ->withErrors($validator)
+                ->withInput();
+        }
+
         $customer = Customer::findOrFail($id);
         $customer->update($request->all());
 
@@ -60,17 +90,17 @@ class CustomerController extends Controller
     }
 
     public function delete($id)
-    {   
+    {
         $customer = Customer::findOrFail($id);
         return view("customer-delete", ["customer" => $customer]);
     }
 
     public function destroy($id)
-    {   
+    {
         $deleteCustomer = Customer::findOrFail($id);
         $deleteCustomer->delete();
 
-        if($deleteCustomer) {
+        if ($deleteCustomer) {
             Session::flash("status", "success");
             Session::flash("message", "Delete customer success!");
         }
