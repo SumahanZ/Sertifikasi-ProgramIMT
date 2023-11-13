@@ -48,8 +48,9 @@ class VehicleController extends Controller
     }
 
     public function update(Request $request, $id)
-    {
-        $validator = Validator::make($request->all(), [
+{
+
+    $validator = Validator::make($request->all(), [
             'model' => 'required|string|max:255',
             'tahun' => 'required|string|max:4',
             'jumlah_penumpang' => 'required|numeric',
@@ -70,93 +71,76 @@ class VehicleController extends Controller
                 ->withErrors($validator)
                 ->withInput();
         }
+    $vehicle = Vehicle::findOrFail($id);
+    $newName = $vehicle->image;
 
-        $vehicle = Vehicle::findOrFail($id);
-        $newName = $vehicle->image;
-    
-        if ($request->file("photo")) {
-            $extension = $request->file('photo')->getClientOriginalExtension();
-            $newName = $request->model . "-" . now()->timestamp . "." . $extension;
-            $request->file("photo")->storeAs("vehicle_images", $newName);
-        }
-    
-        if ($request->type == "car") {
-            $car = Car::findOrFail($vehicle->vehicleable_id);
-            $car->tipe_bahan_bakar = $request->tipe_bahan_bakar;
-            $car->luas_bagasi = $request->luas_bagasi;
-            $car->save();
-    
-            if ($newName != $vehicle->image) {
-                $vehicle->image = $newName;
-            }
-    
-            $vehicle->update([
-                "model" => $request->model,
-                "tahun" => $request->tahun,
-                "jumlah_penumpang" => $request->jumlah_penumpang,
-                "manufaktur" => $request->manufaktur,
-                "harga" => $request->harga,
-                "vehicleable_id" => $car->id,
-                "vehicleable_type" => "App\Models\Car",
-            ]);
-    
-            if ($car) {
-                Session::flash("status", "success");
-                Session::flash("message", "Update vehicle success!");
-            }
-    
-        } elseif ($request->type == "truck") {
-            $truck = Truck::findOrFail($vehicle->vehicleable_id);
-            $truck->jumlah_roda_ban = $request->jumlah_roda;
-            $truck->luas_area_kargo = $request->area_kargo;
-            $truck->save();
-    
-            // Check if the new image is different from the current one
-            if ($newName != $vehicle->image) {
-                $vehicle->image = $newName;
-            }
-    
-            $vehicle->update([
-                "model" => $request->model,
-                "tahun" => $request->tahun,
-                "jumlah_penumpang" => $request->jumlah_penumpang,
-                "manufaktur" => $request->manufaktur,
-                "harga" => $request->harga,
-                "vehicleable_id" => $truck->id,
-                "vehicleable_type" => "App\Models\Truck",
-            ]);
-    
-            if ($truck) {
-                Session::flash("status", "success");
-                Session::flash("message", "Update vehicle success!");
-            }
-        } else {
-            $bike = MotorBike::findOrFail($vehicle->vehicleable_id);
-            $bike->ukuran_bagasi = $request->ukuran_bagasi;
-            $bike->kapasitas_bensin = $request->kapasitas_bensin;
-            $bike->save();
-    
-            if ($newName !== $vehicle->image) {
-                $vehicle->image = $newName;
-            }
-    
-            $vehicle->update([
-                "model" => $request->model,
-                "tahun" => $request->tahun,
-                "jumlah_penumpang" => $request->jumlah_penumpang,
-                "manufaktur" => $request->manufaktur,
-                "harga" => $request->harga,
-                "vehicleable_id" => $bike->id,
-                "vehicleable_type" => "App\Models\MotorBike",
-            ]);
-    
-            if ($bike) {
-                Session::flash("status", "success");
-                Session::flash("message", "Update vehicle success!");
-            }
-        }
-        return redirect("/vehicles");
+    if ($request->file("photo")) {
+        $extension = $request->file('photo')->getClientOriginalExtension();
+        $newName = $request->model . "-" . now()->timestamp . "." . $extension;
+        $request->file("photo")->storeAs("vehicle_images", $newName);
     }
+
+    // Clear old type-specific attributes if the type has changed
+    if ($request->type != $vehicle->vehicleable_type) {
+        $vehicle->vehicleable()->delete();
+    }
+
+    if ($request->type == "car") {
+        $car = Car::updateOrCreate(['id' => $vehicle->vehicleable_id], [
+            'tipe_bahan_bakar' => $request->tipe_bahan_bakar,
+            'luas_bagasi' => $request->luas_bagasi,
+        ]);
+
+        $vehicle->update([
+            "model" => $request->model,
+            "tahun" => $request->tahun,
+            "jumlah_penumpang" => $request->jumlah_penumpang,
+            "manufaktur" => $request->manufaktur,
+            "harga" => $request->harga,
+            "image" => $newName,
+            "vehicleable_id" => $car->id,
+            "vehicleable_type" => "App\Models\Car",
+        ]);
+    } elseif ($request->type == "truck") {
+        $truck = Truck::updateOrCreate(['id' => $vehicle->vehicleable_id], [
+            'jumlah_roda_ban' => $request->jumlah_roda,
+            'luas_area_kargo' => $request->area_kargo,
+        ]);
+
+        $vehicle->update([
+            "model" => $request->model,
+            "tahun" => $request->tahun,
+            "jumlah_penumpang" => $request->jumlah_penumpang,
+            "manufaktur" => $request->manufaktur,
+            "harga" => $request->harga,
+            "image" => $newName,
+            "vehicleable_id" => $truck->id,
+            "vehicleable_type" => "App\Models\Truck",
+        ]);
+    } else {
+        $bike = MotorBike::updateOrCreate(['id' => $vehicle->vehicleable_id], [
+            'ukuran_bagasi' => $request->ukuran_bagasi,
+            'kapasitas_bensin' => $request->kapasitas_bensin,
+        ]);
+
+        $vehicle->update([
+            "model" => $request->model,
+            "tahun" => $request->tahun,
+            "jumlah_penumpang" => $request->jumlah_penumpang,
+            "manufaktur" => $request->manufaktur,
+            "harga" => $request->harga,
+            "image" => $newName,
+            "vehicleable_id" => $bike->id,
+            "vehicleable_type" => "App\Models\MotorBike",
+        ]);
+    }
+
+    Session::flash("status", "success");
+    Session::flash("message", "Update vehicle success!");
+
+    return redirect("/vehicles");
+}
+
     
 
     public function store(Request $request)
